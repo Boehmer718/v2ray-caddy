@@ -32,7 +32,8 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
           build-args: |
             V2R_VERSION=${{ steps.v2ray.outputs.release }}
           push: true
-          tags: anerg/v2ray:latest, anerg/v2ray:${{ steps.v2ray.outputs.release }}
+          tags: dzluck/v2ray-caddy:${{ steps.v2ray.outputs.release }}, dzluck/v2ray-caddy:latest
