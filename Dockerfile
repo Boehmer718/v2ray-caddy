@@ -2,7 +2,7 @@ FROM caddy:2-alpine
 
 LABEL org.opencontainers.image.authors="admin@gmail.com"
 
-ARG V2R_VERSION=v4.45.2
+ARG V2R_VERSION=v5.29.2
 ARG DOMAIN
 ARG EMAIL
 ARG TARGETARCH
