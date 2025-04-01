@@ -31,7 +31,9 @@ RUN set -xe \
     # 根据目标架构选择正确的下载URL
     && if [ "$TARGETARCH" = "arm64" ]; then \
          export V2R_URL=https://github.com/v2fly/v2ray-core/releases/download/${V2R_VERSION}/v2ray-linux-arm64-v8a.zip; \
-       elif [ "$TARGETARCH" = "amd" ]; then \
+       elif [ "$TARGETARCH" = "arm" ]; then \
+         export V2R_URL=https://github.com/v2fly/v2ray-core/releases/download/${V2R_VERSION}/v2ray-linux-arm32-v7a.zip; \
+       else \
          export V2R_URL=https://github.com/v2fly/v2ray-core/releases/download/${V2R_VERSION}/v2ray-linux-64.zip; \
        fi \
     && echo "Downloading from: $V2R_URL" \
