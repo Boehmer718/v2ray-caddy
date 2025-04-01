@@ -1,18 +1,17 @@
 FROM caddy:2-alpine
 
-LABEL org.opencontainers.image.authors="r.anerg@gmail.com"
+LABEL org.opencontainers.image.authors="admin@gmail.com"
 
-ARG V2R_VERSION=v5.1.0
+ARG V2R_VERSION=v5.29.3
 ARG DOMAIN
 ARG EMAIL
+ARG TARGETARCH
 
-
-ENV TZ              Asia/Shanghai
-ENV DOMAIN          ${DOMAIN}
-ENV EMAIL           ${EMAIL}
-ENV V2R_URL         https://github.com/v2fly/v2ray-core/releases/download/${V2R_VERSION}/v2ray-linux-64.zip
-ENV V2R_PATH_CONF   /etc/v2ray
-ENV CADDY_PATH_CONF /etc/caddy
+ENV TZ=Asia/Shanghai
+ENV DOMAIN=${DOMAIN}
+ENV EMAIL=${EMAIL}
+ENV V2R_PATH_CONF=/etc/v2ray
+ENV CADDY_PATH_CONF=/etc/caddy
 
 ADD boot.sh /usr/bin
 
@@ -29,6 +28,13 @@ RUN set -xe \
     ${V2R_PATH_CONF} \
     /app \
     && cp /usr/share/zoneinfo/${TZ} /etc/localtime \
+    # 根据目标架构选择正确的下载URL
+    && if [ "$TARGETARCH" = "arm64" ]; then \
+         export V2R_URL=https://github.com/v2fly/v2ray-core/releases/download/${V2R_VERSION}/v2ray-linux-arm64-v8a.zip; \
+       elif [ "$TARGETARCH" = "amd" ]; then \
+         export V2R_URL=https://github.com/v2fly/v2ray-core/releases/download/${V2R_VERSION}/v2ray-linux-64.zip; \
+       fi \
+    && echo "Downloading from: $V2R_URL" \
     && curl -L -H "Cache-Control: no-cache" -o /tmp/v2ray.zip ${V2R_URL} \
     && unzip /tmp/v2ray.zip -d /tmp/v2ray \
     && mv /tmp/v2ray /app \
