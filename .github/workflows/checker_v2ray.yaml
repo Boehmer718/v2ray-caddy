@@ -1,0 +1,49 @@
+name: V2ray Version Update Checker
+
+env:
+  REPO_NAME: v2fly/v2ray-core
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: 0 8 * * *
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Get Latest V2ray Version
+        id: getVersion
+        uses: pozetroninc/github-action-get-latest-release@master
+        with:
+          repository: v2fly/v2ray-core
+          excludes: "prerelease, draft"
+
+      - name: Get My Tag
+        uses: rmeneely/git-last-tag@v1
+
+      - name: Echo V2ray Version
+        run: |
+          echo ${{ steps.getVersion.outputs.release }}
+
+      - name: Echo My Tag
+        run: |
+          echo ${{ env.LAST_TAG }}
+
+      - name: Compare Version And Add Tag
+        if: env.LAST_TAG != steps.getVersion.outputs.release
+        uses: negz/create-tag@v1
+        with:
+          version: ${{ steps.getVersion.outputs.release }}
+          token: ${{ secrets.REPO_TOKEN }}
+
+      - name: Trigger build
+        if: env.LAST_TAG != steps.getVersion.outputs.release
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.REPO_TOKEN }}
+          event-type: V2ray Version Update
