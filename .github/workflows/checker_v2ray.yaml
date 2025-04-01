@@ -4,9 +4,13 @@ env:
   REPO_NAME: v2fly/v2ray-core
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: 0 5 * * *
+    - cron: '0 5 * * *'
+  repository_dispatch:
+    types: [check_v2ray_update]
+  workflow_dispatch:
+  watch:
+    types: [started]
 
 jobs:
   check:
