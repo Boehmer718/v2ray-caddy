@@ -28,13 +28,13 @@ docker run -d \
   --env=DOMAIN=v2.mooim.com \
   --env=EMAIL=r.anerg@gmail.com \
   --restart=always \
-  --name=caddy_v2ray \
+  --name=v2ray-caddy \
   dzluck/v2ray-caddy:latest
 ```
 
 > 开放`80`端口是因为zerossl在发证书的时候需要先访问80端口
 
-之后运行命令`docker logs caddy_v2ray`（注意，这里的`caddy_v2ray`要和命令中的`--name`的值一致）
+之后运行命令`docker logs v2ray-caddy`（注意，这里的`v2ray-caddy`要和命令中的`--name`的值一致）
 
 你就能看到类似如下的输出：
 
