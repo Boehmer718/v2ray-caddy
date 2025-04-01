@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    name: Caddy V2ray
+    name: V2ray-caddy
     runs-on: ubuntu-latest
     steps:
       - name: Get Latest V2ray Version
