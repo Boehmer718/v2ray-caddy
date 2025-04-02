@@ -4,15 +4,13 @@ env:
   REPO_NAME: v2fly/v2ray-core
 
 on:
-  #release:
-    #types: [published]
   schedule:
-    - cron: '0 5 * * *'
+    - cron: '0 5 * * *'  # 每天 UTC 5:00 运行
   repository_dispatch:
     types: [check_v2ray_update]
-  workflow_dispatch:
+  workflow_dispatch:  # 允许手动触发
   watch:
-    types: [started]
+    types: [started]  # 当仓库被star时触发
 
 jobs:
   check:
@@ -21,6 +19,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # 获取完整历史以便正确检查标签
 
       - name: Get Latest V2ray Version
         id: getVersion
@@ -31,25 +31,56 @@ jobs:
 
       - name: Get My Tag
         uses: rmeneely/git-last-tag@v1
+        id: lastTag
+        continue-on-error: true  # 如果没有标签也不会失败
 
-      - name: Echo V2ray Version
+      - name: Set Last Tag Default
+        if: steps.lastTag.outcome == 'failure' || env.LAST_TAG == ''
         run: |
-          echo ${{ steps.getVersion.outputs.release }}
+          echo "LAST_TAG=v0.0.0" >> $GITHUB_ENV
 
-      - name: Echo My Tag
+      - name: Echo Version Info
         run: |
-          echo ${{ env.LAST_TAG }}
+          echo "Latest V2ray version: ${{ steps.getVersion.outputs.release }}"
+          echo "Current stored version: ${{ env.LAST_TAG }}"
 
-      - name: Compare Version And Add Tag
+      - name: Check if tag exists
+        id: check_tag
         if: env.LAST_TAG != steps.getVersion.outputs.release
-        uses: negz/create-tag@v1
-        with:
-          version: ${{ steps.getVersion.outputs.release }}
-          token: ${{ secrets.REPO_TOKEN }}
+        run: |
+          if git ls-remote --tags origin | grep -q "refs/tags/${{ steps.getVersion.outputs.release }}"; then
+            echo "Tag ${{ steps.getVersion.outputs.release }} already exists"
+            echo "tag_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "Tag ${{ steps.getVersion.outputs.release }} does not exist"
+            echo "tag_exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create tag
+        if: env.LAST_TAG != steps.getVersion.outputs.release && steps.check_tag.outputs.tag_exists == 'false'
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git tag -a ${{ steps.getVersion.outputs.release }} -m "V2Ray version ${{ steps.getVersion.outputs.release }}"
+          git push origin ${{ steps.getVersion.outputs.release }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+
+      - name: Create or update version file
+        if: env.LAST_TAG != steps.getVersion.outputs.release
+        run: |
+          mkdir -p .github
+          echo "${{ steps.getVersion.outputs.release }}" > .github/v2ray_version
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add .github/v2ray_version
+          git commit -m "Update V2Ray version to ${{ steps.getVersion.outputs.release }}"
+          git push
 
       - name: Trigger build
         if: env.LAST_TAG != steps.getVersion.outputs.release
         uses: peter-evans/repository-dispatch@v1
         with:
           token: ${{ secrets.REPO_TOKEN }}
-          event-type: V2ray Version Update
+          event-type: V2ray_Version_Update
+          client-payload: '{"version": "${{ steps.getVersion.outputs.release }}"}'
