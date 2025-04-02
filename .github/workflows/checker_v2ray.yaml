@@ -5,7 +5,7 @@ env:
 
 on:
   schedule:
-    - cron: '0 8 * * *'  # 每天 UTC 8:00 运行
+    - cron: '0 20 * * *'  # 每天 UTC 20:00 运行
   repository_dispatch:
     types: [check_v2ray_update]
   workflow_dispatch:  # 允许手动触发
