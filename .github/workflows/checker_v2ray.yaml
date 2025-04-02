@@ -4,8 +4,8 @@ env:
   REPO_NAME: v2fly/v2ray-core
 
 on:
-  release:
-    types: [published]
+  #release:
+    #types: [published]
   schedule:
     - cron: '0 5 * * *'
   repository_dispatch:
